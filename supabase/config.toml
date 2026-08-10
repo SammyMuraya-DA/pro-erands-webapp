@@ -1,0 +1,7 @@
+project_id = "odekltrouruyxcttyjqi"
+
+[functions.auto-dispatch]
+verify_jwt = false
+
+[functions.rider-respond]
+verify_jwt = false
