@@ -205,6 +205,45 @@ export type Database = {
         }
         Relationships: []
       }
+      rider_applications: {
+        Row: {
+          city: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string
+          status: string
+          updated_at: string
+          vehicle_plate: string | null
+          vehicle_type: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone: string
+          status?: string
+          updated_at?: string
+          vehicle_plate?: string | null
+          vehicle_type?: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          status?: string
+          updated_at?: string
+          vehicle_plate?: string | null
+          vehicle_type?: string
+        }
+        Relationships: []
+      }
       riders: {
         Row: {
           auth_token: string | null

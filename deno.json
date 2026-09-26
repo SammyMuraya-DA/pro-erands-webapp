@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.ns", "deno.unstable", "dom"]
+  },
+  "tasks": {
+    "dev:initiate-mpesa": "deno run --allow-net --allow-env supabase/functions/initiate-mpesa-payment/index.ts",
+    "dev:send-payment": "deno run --allow-net --allow-env supabase/functions/send-payment-request/index.ts",
+    "dev:callback": "deno run --allow-net --allow-env supabase/functions/mpesa-callback/index.ts"
+  }
+}
+

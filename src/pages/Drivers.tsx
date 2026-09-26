@@ -1,10 +1,51 @@
+import { useState, type FormEvent } from "react";
 import { Layout } from "@/components/layout";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, DollarSign, Clock, Shield, Smartphone, ArrowRight } from "lucide-react";
+import { DollarSign, Clock, Shield, Smartphone } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Drivers = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    setIsSubmitting(true);
+
+    const formData = new FormData(form);
+    const application = {
+      name: String(formData.get("name") || "").trim(),
+      phone: String(formData.get("phone") || "").trim(),
+      email: String(formData.get("email") || "").trim() || null,
+      city: String(formData.get("city") || "").trim() || null,
+      vehicle_type: String(formData.get("vehicle_type") || "").trim() || "motorcycle",
+      vehicle_plate: String(formData.get("vehicle_plate") || "").trim() || null,
+    };
+
+    try {
+      const { error } = await supabase.from("rider_applications").insert(application);
+      if (error) throw error;
+
+      form.reset();
+      toast({ title: "Application submitted", description: "Our team will review your application." });
+    } catch (error) {
+      console.error("Rider application submission failed:", error);
+      const message = error && typeof error === "object" && "message" in error && typeof error.message === "string"
+        ? error.message
+        : "Please try again later or contact our team.";
+      toast({
+        title: "Could not submit application",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Layout>
       <section className="bg-gradient-to-br from-primary via-primary to-accent text-primary-foreground section-padding">
@@ -45,13 +86,16 @@ const Drivers = () => {
       <section id="apply" className="section-padding bg-muted">
         <div className="container-custom max-w-xl">
           <h2 className="font-display text-3xl font-bold text-foreground mb-8 text-center">Apply to Ride</h2>
-          <form className="bg-card rounded-2xl p-8 border border-border space-y-6">
-            <Input placeholder="Full Name" />
-            <Input placeholder="Phone Number" />
-            <Input placeholder="Email" type="email" />
-            <Input placeholder="City (e.g., Nairobi)" />
-            <Input placeholder="Vehicle Type (Motorcycle, Bicycle, Car)" />
-            <Button variant="hero" size="lg" className="w-full">Submit Application</Button>
+          <form onSubmit={handleSubmit} className="bg-card rounded-2xl p-8 border border-border space-y-6">
+            <Input name="name" placeholder="Full Name" aria-label="Full name" required />
+            <Input name="phone" placeholder="Phone Number" aria-label="Phone number" type="tel" required />
+            <Input name="email" placeholder="Email (optional)" aria-label="Email" type="email" />
+            <Input name="city" placeholder="City or area" aria-label="City or area" />
+            <Input name="vehicle_type" placeholder="Vehicle Type (Motorcycle, Bicycle, Car)" aria-label="Vehicle type" />
+            <Input name="vehicle_plate" placeholder="Vehicle plate (optional)" aria-label="Vehicle plate" />
+            <Button variant="hero" size="lg" className="w-full" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Submit Application"}
+            </Button>
           </form>
         </div>
       </section>

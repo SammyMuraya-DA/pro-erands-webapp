@@ -16,7 +16,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, dispatchRequestId, riderToken, latitude, longitude } = await req.json();
+    const { action, dispatchRequestId, riderToken, latitude, longitude, orderId, status } = await req.json();
 
     // Authenticate rider by token
     if (!riderToken) throw new Error('Rider token required');
@@ -158,7 +158,6 @@ serve(async (req) => {
     }
 
     if (action === 'update-order-status') {
-      const { orderId, status } = await req.json();
       if (!orderId || !status) throw new Error('orderId and status required');
 
       const updateData: Record<string, string> = { status };
@@ -170,7 +169,13 @@ serve(async (req) => {
         await supabase.from('riders').update({ status: 'available' }).eq('id', rider.id);
       }
 
-      await supabase.from('orders').update(updateData).eq('id', orderId).eq('assigned_rider_id', rider.id);
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update(updateData)
+        .eq('id', orderId)
+        .eq('assigned_rider_id', rider.id);
+
+      if (updateError) throw updateError;
 
       return new Response(JSON.stringify({ success: true, message: `Order status updated to ${status}` }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

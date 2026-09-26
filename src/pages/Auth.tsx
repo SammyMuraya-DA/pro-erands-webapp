@@ -77,6 +77,7 @@ export default function Auth() {
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
+        duration: 3000,
       });
       navigate("/account");
     }

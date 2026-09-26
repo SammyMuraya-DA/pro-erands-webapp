@@ -50,6 +50,19 @@ interface ActiveOrder {
   estimated_delivery_at: string | null;
 }
 
+async function getErrorMessage(error: unknown) {
+  if (error && typeof error === "object" && "context" in error && error.context instanceof Response) {
+    try {
+      const responseBody = await error.context.clone().json();
+      if (typeof responseBody.error === "string") return responseBody.error;
+    } catch {
+      // Fall back to the SDK error message when the response has no JSON body.
+    }
+  }
+
+  return error instanceof Error ? error.message : "Unable to verify rider token";
+}
+
 export default function RiderPortal() {
   const [searchParams] = useSearchParams();
   const tokenParam = searchParams.get("token");
@@ -89,8 +102,14 @@ export default function RiderPortal() {
         setAuthenticated(true);
         localStorage.setItem("rider_token", token);
       }
-    } catch {
-      toast({ title: "Invalid token", variant: "destructive" });
+    } catch (error) {
+      const message = await getErrorMessage(error);
+      const invalidToken = message.toLowerCase().includes("token");
+      toast({
+        title: invalidToken ? "Invalid rider token" : "Rider sign-in failed",
+        description: message,
+        variant: "destructive",
+      });
       setAuthenticated(false);
     } finally {
       setLoading(false);
